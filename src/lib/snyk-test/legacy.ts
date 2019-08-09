@@ -48,6 +48,7 @@ export interface GroupedVuln {
   dockerfileInstruction: string;
   dockerBaseImage: string;
   nearestFixedInVersion: string;
+  legalInstructions?: string;
 }
 
 export interface IssueData {
@@ -69,6 +70,7 @@ export interface IssueData {
   title: string;
   severity: SEVERITY;
   fixedIn: string[];
+  legalInstructions?: string;
 }
 
 interface AnnotatedIssue extends IssueData {
