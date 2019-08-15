@@ -1,9 +1,16 @@
 import * as _ from 'lodash';
 import chalk from 'chalk';
+import * as wrap from 'wrap-ansi';
 import * as config from '../../../../lib/config';
 import { TestOptions } from '../../../../lib/types';
-import { RemediationResult, PatchRemediation,
-  DependencyUpdates, IssueData, SEVERITY, GroupedVuln } from '../../../../lib/snyk-test/legacy';
+import {
+  RemediationResult,
+  PatchRemediation,
+  DependencyUpdates,
+  IssueData,
+  SEVERITY,
+  GroupedVuln,
+} from '../../../../lib/snyk-test/legacy';
 
 interface BasicVulnInfo {
   title: string;
@@ -19,7 +26,7 @@ export function formatIssuesWithRemediation(
   vulns: GroupedVuln[],
   remediationInfo: RemediationResult,
   options: TestOptions,
-  ): string[] {
+): string[] {
 
   const basicVulnInfo: {
     [name: string]: BasicVulnInfo,
@@ -65,7 +72,7 @@ function constructPatchesText(
   basicVulnInfo: {
     [name: string]: BasicVulnInfo;
   },
-  ): string[] {
+): string[] {
 
   if (!(Object.keys(patches).length > 0)) {
     return [];
@@ -94,7 +101,7 @@ function constructUpgradesText(
   basicVulnInfo: {
     [name: string]: BasicVulnInfo;
   },
-  ): string[] {
+): string[] {
 
   if (!(Object.keys(upgrades).length > 0)) {
     return [];
@@ -105,15 +112,15 @@ function constructUpgradesText(
     const upgradeDepTo = _.get(upgrades, [upgrade, 'upgradeTo']);
     const vulnIds = _.get(upgrades, [upgrade, 'vulns']);
     const upgradeText =
-    `\n  Upgrade ${chalk.bold.whiteBright(upgrade)} to ${chalk.bold.whiteBright(upgradeDepTo)} to fix\n`;
+      `\n  Upgrade ${chalk.bold.whiteBright(upgrade)} to ${chalk.bold.whiteBright(upgradeDepTo)} to fix\n`;
     const thisUpgradeFixes = vulnIds
       .map((id) => formatIssue(
-          id,
-          basicVulnInfo[id].title,
-          basicVulnInfo[id].severity,
-          basicVulnInfo[id].isNew,
-          `${basicVulnInfo[id].name}@${basicVulnInfo[id].version}`,
-          basicVulnInfo[id].legalInstructions))
+        id,
+        basicVulnInfo[id].title,
+        basicVulnInfo[id].severity,
+        basicVulnInfo[id].isNew,
+        `${basicVulnInfo[id].name}@${basicVulnInfo[id].version}`,
+        basicVulnInfo[id].legalInstructions))
       .join('\n');
     upgradeTextArray.push(upgradeText + thisUpgradeFixes);
   }
@@ -168,11 +175,13 @@ function formatIssue(
   };
   const newBadge = isNew ? ' (new)' : '';
   const name = vulnerableModule ? ` in ${chalk.bold(vulnerableModule)}` : '';
+  const wrapLegalText = wrap(`${legalInstructions}`, 100);
+  const formatLegalText = wrapLegalText.split('\n').join('\n    ');
 
   return severitiesColourMapping[severity].colorFunc(
     `  ✗ ${chalk.bold(title)}${newBadge} [${titleCaseText(severity)} Severity]`,
-    ) + `[${config.ROOT}/vuln/${id}]` + name
-    + (legalInstructions ? `${chalk.bold('\nLegal instructions')}: ${legalInstructions}` : '') ;
+  ) + `[${config.ROOT}/vuln/${id}]` + name
+    + (legalInstructions ? `${chalk.bold('\n    Legal instructions')}:\n    ${formatLegalText}` : '');
 }
 
 function titleCaseText(text) {
